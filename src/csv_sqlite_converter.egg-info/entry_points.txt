@@ -1,0 +1,2 @@
+[console_scripts]
+csvsqlite = csvsqlite.cli:main

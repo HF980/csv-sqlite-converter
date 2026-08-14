@@ -6,6 +6,7 @@ Ein robustes Kommandozeilen-Tool zur bidirektionalen Konvertierung von Daten zwi
 
 - **CSV → SQLite** – Importiert CSV-Dateien als SQLite-Tabelle.
 - **SQLite → CSV** – Exportiert Tabellen oder das Ergebnis einer `SELECT`-Abfrage.
+- **SQL-Abfragen anzeigen** – Zeigt das Ergebnis einer `SELECT`-Abfrage direkt im Terminal.
 - **Automatische Typinferenz** – Erkennt `INTEGER`, `REAL` und `TEXT`.
 - **Automatische Dialekterkennung** – Erkennt gängige CSV-Trennzeichen.
 - **Tabellen anzeigen** – Listet alle Tabellen einer SQLite-Datenbank auf.
@@ -27,13 +28,13 @@ Repository klonen:
 
 Paket installieren:
 
-    pip install
+    pip install .
 
 Für die Entwicklung inklusive Testabhängigkeiten:
 
     pip install -e ".[dev]"
 
-Nach der Installation steht der Befehl 'csvsqlite' zur Verfügung:
+Nach der Installation steht der Befehl `csvsqlite` zur Verfügung:
 
     csvsqlite --help
 
@@ -43,19 +44,19 @@ Nach der Installation steht der Befehl 'csvsqlite' zur Verfügung:
 
     csvsqlite import daten.csv --db daten.db --table personen
 
-Der Parameter '--table' ist optional. Ohne Angabe wird der Dateiname ohne Endung als Tabellenname verwendet.
+Der Parameter `--table` ist optional. Ohne Angabe wird der Dateiname ohne Endung als Tabellenname verwendet.
 
 ### Import-Optionen
 
-| Option | Beschreibung |
-|---|---|
-| '--db DB' | Pfad zur SQLite-Datenbank |
-| '--table NAME' | Zieltabelle |
-| '--if-exists {fail,replace,append}' | Verhalten bei vorhandener Tabelle |
-| '--no-infer-types' | Alle Spalten als `TEXT` anlegen |
-| '--chunksize N' | Zeilen pro Batch-Insert, Standard: 5000 |
-| '--delimiter ZEICHEN' | CSV-Trennzeichen explizit festlegen |
-| '--encoding NAME' | Zeichenkodierung, Standard: UTF-8 |
+| Option    | Beschreibung |
+|-----------|--------------|
+| `--db DB` | Pfad zur SQLite-Datenbank |
+| `--table NAME` | Zieltabelle |
+| `--if-exists {fail,replace,append}` | Verhalten bei vorhandener Tabelle |
+| `--no-infer-types` | Alle Spalten als `TEXT` anlegen |
+| `--chunksize N` | Zeilen pro Batch-Insert, Standard: 5000 |
+| `--delimiter ZEICHEN` | CSV-Trennzeichen explizit festlegen |
+| `--encoding NAME` | Zeichenkodierung, Standard: UTF-8 |
 
 ### Beispiel
 
@@ -91,14 +92,14 @@ Alternativ kann das Ergebnis einer `SELECT`-Abfrage exportiert werden:
 
 | Option | Beschreibung |
 |---|---|
-| '--db DB' | Pfad zur SQLite-Datenbank |
-| '--out OUT' | Pfad zur Ziel-CSV-Datei |
-| '--table TABLE' | Zu exportierende Tabelle |
-| '--query QUERY' | SELECT-Abfrage als Datenquelle |
-| '--delimiter ZEICHEN' | Trennzeichen der CSV-Ausgabe |
-| '--encoding NAME' | Zeichenkodierung der Ausgabe |
+| `--db DB` | Pfad zur SQLite-Datenbank |
+| `--out OUT` | Pfad zur Ziel-CSV-Datei |
+| `--table TABLE` | Zu exportierende Tabelle |
+| `--query QUERY` | SELECT-Abfrage als Datenquelle |
+| `--delimiter ZEICHEN` | Trennzeichen der CSV-Ausgabe |
+| `--encoding NAME` | Zeichenkodierung der Ausgabe |
 
-'--table' und '--query' schließen sich gegenseitig aus.
+`--table` und `--query` schließen sich gegenseitig aus.
 
 ## Tabellen auflisten
 
@@ -121,6 +122,24 @@ Beispiel:
       - alter: INTEGER
       - gehalt: REAL
 
+## Datenbankabfragen anzeigen
+
+Mit dem `query`-Befehl können die Ergebnisse einer SQL-`SELECT`-Abfrage direkt im Terminal angezeigt werden:
+
+    csvsqlite query \
+      --db datenbank.db \
+      --sql "SELECT * FROM lottery_draws LIMIT 10"
+
+Der Befehl eignet sich besonders zur schnellen Kontrolle und Analyse von Daten, ohne zunächst eine CSV-Datei erzeugen zu müssen.
+
+Beispiel mit einer SQLite-Datenbank:
+
+    csvsqlite query \
+      --db /Users/h.f/PyPro/src/pypro/gui/pyqt6/mylotto_pyqt6/data/database/eurojackpot_history.db \
+      --sql "SELECT * FROM lottery_draws LIMIT 10"
+
+Es sind ausschließlich `SELECT`-Abfragen erlaubt. Datenbankänderungen wie `INSERT`, `UPDATE`, `DELETE`, `DROP` oder `ALTER` werden nicht ausgeführt.
+
 ## Weitere Optionen
 
 Allgemeine Hilfe:
@@ -134,6 +153,10 @@ Hilfe zum Import:
 Hilfe zum Export:
 
     csvsqlite export --help
+
+Hilfe zu Datenbankabfragen:
+
+    csvsqlite query --help
 
 Version anzeigen:
 
@@ -151,10 +174,10 @@ Wenn kein Trennzeichen angegeben wird, versucht das Programm automatisch, den CS
 
 Unterstützt werden unter anderem:
 
-- ','
-- ';'
+- `,`
+- `;`
 - Tabulator
-- '|'
+- `|`
 
 Beispiel:
 
@@ -164,9 +187,9 @@ Beispiel:
 
 CSV-Spalten werden automatisch auf folgende SQLite-Typen geprüft:
 
-- 'INTEGER'
-- 'REAL'
-- 'TEXT'
+- `INTEGER`
+- `REAL`
+- `TEXT`
 
 Leere Felder werden als `NULL` gespeichert.
 
@@ -192,13 +215,13 @@ Beispiel:
 
 ### Sicherer Export
 
-Bei Verwendung von '--query' sind ausschließlich 'SELECT'-Abfragen erlaubt.
+Bei Verwendung von `--query` sind ausschließlich `SELECT`-Abfragen erlaubt.
 
 Beispiel:
 
     csvsqlite export --db daten.db --query "SELECT * FROM personen" --out personen.csv
 
-Operationen wie 'DROP', 'DELETE', 'UPDATE' oder 'INSERT' werden nicht als Exportabfrage akzeptiert.
+Operationen wie `DROP`, `DELETE`, `UPDATE` oder `INSERT` werden nicht als Exportabfrage akzeptiert.
 
 ### Fehlermanagement
 
@@ -235,4 +258,3 @@ Tests ausführen:
 ## Lizenz
 
 MIT
-EOF

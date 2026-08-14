@@ -1,3 +1,15 @@
+#********************************************#
+# @header-start
+# @shebang: #!/usr/bin/env python3
+# @Project: csvsqlite
+# @file name: core.py
+# @author: H.F
+# @creation date: 14.08.2026
+# @lastmodified: 14.08.2026
+# @version: 1.0
+# @copyright: © 2026 H.F. All rights reserved.
+#********************************************#
+
 """Kernlogik für die Konvertierung zwischen CSV-Dateien und SQLite-Datenbanken."""
 
 from __future__ import annotations
@@ -297,6 +309,44 @@ def get_table_schema(db_path: Path, table: str) -> list[tuple]:
         if not info:
             raise TableNotFoundError(f"Tabelle '{table}' nicht gefunden in {db_path}")
         return info
+    finally:
+        conn.close()
+
+# ---------------------------------------------------------------------------
+# SQLite Query
+# ---------------------------------------------------------------------------
+
+
+def execute_select_query(
+    db_path: Path,
+    query: str,
+) -> tuple[list[str], list[tuple]]:
+    """Führt eine SELECT-Abfrage aus und gibt Spalten und Zeilen zurück.
+
+    Es sind ausschließlich SELECT-Abfragen erlaubt.
+    """
+    if not db_path.is_file():
+        raise FileNotFoundError(f"SQLite-Datenbank nicht gefunden: {db_path}")
+
+    query = query.strip()
+
+    if not query:
+        raise CsvSqliteError("SQL-Abfrage darf nicht leer sein")
+
+    # Nur SELECT-Abfragen erlauben.
+    if not re.match(r"^\s*SELECT\b", query, re.IGNORECASE):
+        raise CsvSqliteError("Nur SELECT-Abfragen sind für 'query' erlaubt")
+
+    conn = sqlite3.connect(str(db_path))
+    try:
+        cur = conn.execute(query)
+
+        columns = [description[0] for description in cur.description]
+        rows = cur.fetchall()
+
+        return columns, rows
+    except sqlite3.Error as exc:
+        raise CsvSqliteError(f"SQL-Fehler: {exc}") from exc
     finally:
         conn.close()
 

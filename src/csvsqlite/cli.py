@@ -1,3 +1,15 @@
+#********************************************#
+# @header-start
+# @shebang: #!/usr/bin/env python3
+# @Project: csvsqlite
+# @file name: cli.py
+# @author: H.F
+# @creation date: 14.08.2026
+# @lastmodified: 14.08.2026
+# @version: 1.0
+# @copyright: © 2026 H.F. All rights reserved.
+#********************************************#
+
 """Kommandozeilen-Interface für csv-sqlite-converter."""
 
 from __future__ import annotations
@@ -10,6 +22,7 @@ from pathlib import Path
 from . import __version__
 from .core import (
     CsvSqliteError,
+    execute_select_query,
     export_sqlite_to_csv,
     get_table_schema,
     import_csv_to_sqlite,
@@ -94,6 +107,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_schema.add_argument("--db", required=True, type=Path, help="Pfad zur SQLite-Datenbank")
     p_schema.add_argument("--table", required=True, help="Name der Tabelle")
 
+    # --- query -----------------------------------------------------------
+    p_query = subparsers.add_parser("query",help="SELECT-Abfrage ausführen und Ergebnis im Terminal anzeigen")
+    p_query.add_argument("--db",required=True,type=Path,help="Pfad zur SQLite-Datenbank")
+    p_query.add_argument("--sql",required=True,help="SELECT-Abfrage")
+
     return parser
 
 
@@ -155,6 +173,29 @@ def _cmd_schema(args: argparse.Namespace) -> int:
         print(f"  - {name}: {col_type}{flag_str}")
     return 0
 
+def _cmd_query(args: argparse.Namespace) -> int:
+    columns, rows = execute_select_query(
+        db_path=args.db,
+        query=args.sql,
+    )
+
+    if not rows:
+        print("Keine Ergebnisse.")
+        return 0
+
+    print(" | ".join(columns))
+    print("-+-".join("-" * len(column) for column in columns))
+
+    for row in rows:
+        print(
+            " | ".join(
+                "NULL" if value is None else str(value)
+                for value in row
+            )
+        )
+
+    print(f"\n{len(rows)} Zeilen.")
+    return 0
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
@@ -170,7 +211,9 @@ def main(argv: list[str] | None = None) -> int:
         "export": _cmd_export,
         "tables": _cmd_tables,
         "schema": _cmd_schema,
+        "query": _cmd_query,
     }
+
 
     try:
         return handlers[args.command](args)
